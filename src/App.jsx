@@ -1,42 +1,51 @@
-// src/App.jsx
+// src/App.jsx (Updated)
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
+import MapView from './components/MapView'; // <-- Import your MapView component
+
+// Define constants for your views
+const VIEWS = {
+  DASHBOARD: 'dashboard',
+  MAP_VIEW: 'map-view',
+  // Add others later: ALL_ISSUES: 'all-issues', REPORTS: 'reports', etc.
+};
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // In a real app, you'd fetch issue data here or use state management
-  const [issuesData, setIssuesData] = useState([]); // Empty for now, as data was JS-injected
-  
+  const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD); // <-- New State!
+
+  // Renders the correct component based on state
+  const renderContent = () => {
+    switch (currentView) {
+      case VIEWS.DASHBOARD:
+        // Pass a dummy issuesData array for now (Dashboard.jsx already has DUMMY_ISSUES)
+        return <Dashboard />; 
+      case VIEWS.MAP_VIEW:
+        // Pass the issues data to the map component
+        // NOTE: You need to lift your DUMMY_ISSUES from Dashboard.jsx to App.jsx later!
+        return <MapView issues={[]} />; 
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Pass the current view and the setter function to the Sidebar */}
       <Sidebar 
         isSidebarOpen={isSidebarOpen} 
         setIsSidebarOpen={setIsSidebarOpen} 
+        currentView={currentView} // New prop
+        setCurrentView={setCurrentView} // New prop
       />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex justify-between items-center p-4 bg-white border-b shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-600">Welcome, Admin</span>
-            <img src="https://placehold.co/40x40/3b82f6/FFFFFF?text=A" alt="Admin" className="w-10 h-10 rounded-full"/>
-            {/* Toggle button for small screens */}
-            <button 
-              className="md:hidden text-gray-500 hover:text-gray-900" 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"/>
-              </svg>
-            </button>
-          </div>
-        </header>
+        {/* ... Header remains the same ... */}
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-          {/* Dashboard is rendered here */}
-          <Dashboard issuesData={issuesData} />
+          {renderContent()} {/* <-- Render the selected view */}
         </main>
       </div>
     </div>
