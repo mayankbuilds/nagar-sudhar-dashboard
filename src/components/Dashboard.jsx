@@ -1,50 +1,52 @@
 // src/components/Dashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import IssueDetailsModal from './IssueDetailsModal';
-import MapView from './MapView'; // We'll create this for the Map View component
+// Note: DUMMY_ISSUES import is removed here. Data is passed via props from App.jsx
 
-// Dummy Data for demonstration (you'd fetch this from a backend)
-const DUMMY_ISSUES = [
-  { id: 101, category: 'Road Pothole', location: 'Sector 15, Near Park', reportedOn: '2025-09-24', status: 'pending', description: 'A massive pothole causing traffic issues.', imageUrl: 'https://placehold.co/400x200/ef4444/FFFFFF?text=Pothole', coords: [22.5726, 88.3639] }, // Kolkata-ish coords
-  { id: 102, category: 'Street Light Out', location: 'Main Street, Cross Road', reportedOn: '2025-09-22', status: 'in-progress', description: 'Street light not working for 3 days.', imageUrl: 'https://placehold.co/400x200/3b82f6/FFFFFF?text=Light+Out', coords: [22.58, 88.35] },
-  { id: 103, category: 'Garbage Dump', location: 'Behind Mall Road', reportedOn: '2025-09-20', status: 'resolved', description: 'Illegal dumping of construction waste.', imageUrl: 'https://placehold.co/400x200/10b981/FFFFFF?text=Garbage', coords: [22.56, 88.37] },
-];
-
-// Utility to get status color
+// Utility to get status color for table pills
 const getStatusColor = (status) => {
   switch (status) {
-    case 'pending': return 'text-orange-500 bg-orange-100';
-    case 'in-progress': return 'text-blue-500 bg-blue-100';
-    case 'resolved': return 'text-green-500 bg-green-100';
-    default: return 'text-gray-500 bg-gray-100';
+    case 'pending': return 'text-orange-800 bg-orange-200 rounded-full';
+    case 'in-progress': return 'text-blue-800 bg-blue-200 rounded-full';
+    case 'resolved': return 'text-green-800 bg-green-200 rounded-full';
+    default: return 'text-gray-500 bg-gray-100 rounded-full';
   }
 };
 
-function Dashboard({ issuesData = DUMMY_ISSUES }) {
+// Available categories for filtering
+const CATEGORIES = ['All', 'Roads & Pavements', 'Sanitation', 'Public Lighting', 'Waste Management'];
+
+
+function Dashboard({ issuesData = [] }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
+  const [filterCategory, setFilterCategory] = useState('All'); // State for filtering
 
-  // Stats calculation
-  const totalReports = issuesData.length;
-  const pendingReports = issuesData.filter(i => i.status === 'pending').length;
-  const progressReports = issuesData.filter(i => i.status === 'in-progress').length;
-  const resolvedReports = issuesData.filter(i => i.status === 'resolved').length;
+  // --- Filtering Logic ---
+  const filteredIssues = useMemo(() => {
+      return issuesData.filter(issue => {
+          if (filterCategory === 'All') return true;
+          return issue.category === filterCategory;
+      });
+  }, [issuesData, filterCategory]);
+  
+  // --- Stats Calculation (uses filteredIssues) ---
+  const totalReports = filteredIssues.length;
+  const pendingReports = filteredIssues.filter(i => i.currentStatus === 'pending').length;
+  const progressReports = filteredIssues.filter(i => i.currentStatus === 'in-progress').length;
+  const resolvedReports = filteredIssues.filter(i => i.currentStatus === 'resolved').length;
   
   const statCards = [
-    { title: 'Total Reports', value: totalReports, color: 'text-gray-800' },
-    { title: 'Pending Approval', value: pendingReports, color: 'text-orange-500' },
-    { title: 'In Progress', value: progressReports, color: 'text-blue-500' },
-    { title: 'Resolved', value: resolvedReports, color: 'text-green-500' },
+    { title: 'Total Reports', value: totalReports, color: 'text-gray-800', id: 'total-reports' },
+    { title: 'Pending Approval', value: pendingReports, color: 'text-orange-500', id: 'pending-reports' },
+    { title: 'In Progress', value: progressReports, color: 'text-blue-500', id: 'progress-reports' },
+    { title: 'Resolved', value: resolvedReports, color: 'text-green-500', id: 'resolved-reports' },
   ];
 
   const handleViewDetails = (issue) => {
     setSelectedIssue(issue);
     setModalOpen(true);
   };
-  
-  // Note: For 'Map View' to work, you'd need to switch the rendered component 
-  // based on the active sidebar link (e.g., in App.jsx). 
-  // For now, it shows the dashboard.
 
   return (
     <>
@@ -53,14 +55,32 @@ function Dashboard({ issuesData = DUMMY_ISSUES }) {
         {statCards.map((card) => (
           <div key={card.title} className="bg-white p-5 rounded-lg shadow">
             <h3 className="text-sm font-medium text-gray-500">{card.title}</h3>
-            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
+            <p id={card.id} className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* Issues Table */}
       <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Issues</h2>
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Recent Issues</h2>
+            
+            {/* Filter Dropdown UI */}
+            <div className="flex items-center space-x-2">
+                <label htmlFor="category-filter" className="text-sm font-medium text-gray-700">Filter by Category:</label>
+                <select 
+                    id="category-filter"
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                >
+                    {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                </select>
+            </div>
+        </div>
+        
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
@@ -74,31 +94,31 @@ function Dashboard({ issuesData = DUMMY_ISSUES }) {
               </tr>
             </thead>
             <tbody id="issues-table-body">
-              {issuesData.map((issue) => (
+              {filteredIssues.map((issue) => ( {/* Use filteredIssues here */}
                 <tr key={issue.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{issue.id}</td>
                   <td className="px-6 py-4">{issue.category}</td>
-                  <td className="px-6 py-4">{issue.location}</td>
+                  <td className="px-6 py-4">{issue.location.join(', ')}</td> {/* Display coords for now */}
                   <td className="px-6 py-4">{issue.reportedOn}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(issue.status)} capitalize`}>
-                      {issue.status.replace('-', ' ')}
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusColor(issue.currentStatus)} capitalize`}>
+                      {issue.currentStatus.replace('-', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <button 
                       onClick={() => handleViewDetails(issue)}
-                      className="text-blue-600 hover:text-blue-900 font-semibold"
+                      className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition duration-150"
                     >
-                      View
+                      Manage
                     </button>
                   </td>
                 </tr>
               ))}
-              {issuesData.length === 0 && (
+              {filteredIssues.length === 0 && (
                 <tr>
                     <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                        No recent issues found. Time to relax! 😌
+                        No issues found for the selected filter. 🧘
                     </td>
                 </tr>
               )}
@@ -107,21 +127,13 @@ function Dashboard({ issuesData = DUMMY_ISSUES }) {
         </div>
       </div>
       
-      {/* Map View Section (Optional - uncomment when you implement the switch) */}
-      {/* <div className="mt-6 bg-white p-6 rounded-lg shadow h-96">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Issues Map</h2>
-        <MapView issues={issuesData} /> 
-      </div>
-      */}
-
-      {/* Modal is a separate component */}
+      {/* Issue Details Modal */}
       {selectedIssue && (
         <IssueDetailsModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           issue={selectedIssue}
-          // In a real app, you'd pass an update function here: 
-          // onSave={(updatedIssue) => updateIssue(updatedIssue)} 
+          // onSave update function would go here 
         />
       )}
     </>

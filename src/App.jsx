@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import MapView from './components/MapView'; // <-- Import your MapView component
+import DUMMY_ISSUES from './data/dummyIssues';
 
 // Define constants for your views
 const VIEWS = {
@@ -14,17 +15,19 @@ const VIEWS = {
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD); // <-- New State!
+  const [issuesData, setIssuesData] = useState(DUMMY_ISSUES); 
+  const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD);
 
   // Renders the correct component based on state
   const renderContent = () => {
     switch (currentView) {
       case VIEWS.DASHBOARD:
         // Pass a dummy issuesData array for now (Dashboard.jsx already has DUMMY_ISSUES)
-        return <Dashboard />; 
+        return <Dashboard issuesData={issuesData} />; 
       case VIEWS.MAP_VIEW:
         // Pass the issues data to the map component
         // NOTE: You need to lift your DUMMY_ISSUES from Dashboard.jsx to App.jsx later!
-        return <MapView issues={[]} />; 
+        return <MapView issuesData={issuesData} />; 
       default:
         return <Dashboard />;
     }
