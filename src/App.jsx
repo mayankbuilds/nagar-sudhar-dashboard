@@ -15,8 +15,7 @@ const VIEWS = {
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD); // <-- New State!
-  const [issuesData, setIssuesData] = useState(DUMMY_ISSUES); 
-  const [currentView, setCurrentView] = useState(VIEWS.DASHBOARD);
+  const [issuesData, setIssuesData] = useState(DUMMY_ISSUES);
 
   // Renders the correct component based on state
   const renderContent = () => {
