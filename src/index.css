@@ -1,0 +1,25 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can still add your custom CSS or global styles here */
+body {
+    /* Using Tailwind's 'inter' font family */
+    font-family: 'Inter', sans-serif; 
+    /* The original background-color style from your HTML */
+    background-color: #f9fafb; /* gray-50 */
+}
+
+/* The 'modal' keyframe animation from your original <style> block */
+.modal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* You can remove the '.sidebar-link-active' custom style 
+   because it's handled directly in Sidebar.jsx now (e.g., bg-blue-500)
+*/
