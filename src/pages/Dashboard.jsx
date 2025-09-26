@@ -1,7 +1,6 @@
-// src/components/Dashboard.jsx
+// src/pages/Dashboard.jsx
 import React, { useState, useMemo } from 'react';
-import IssueDetailsModal from './IssueDetailsModal';
-// Note: DUMMY_ISSUES import is removed here. Data is passed via props from App.jsx
+import IssueDetailsModal from '../components/IssueDetailsModal';
 
 // Utility to get status color for table pills
 const getStatusColor = (status) => {
@@ -13,8 +12,35 @@ const getStatusColor = (status) => {
   }
 };
 
-// Available categories for filtering
-const CATEGORIES = ['All', 'Roads & Pavements', 'Sanitation', 'Public Lighting', 'Waste Management'];
+// NEW: Utility to get severity color for table pills (matches map logic)
+const getSeverityColor = (severity) => {
+    switch (severity) {
+        case 'Low':
+            return 'bg-green-100 text-green-800';
+        case 'Medium':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'High':
+            return 'bg-red-100 text-red-800';
+        case 'Urgent':
+            return 'bg-red-700 text-white';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+};
+
+
+// Available categories for filtering - UPDATED TO MATCH MOBILE APP ISSUE TYPES
+const CATEGORIES = [
+    'All', 
+    'Pothole', 
+    'Litter/Garbage', 
+    'Damaged Sign', 
+    'Broken Streetlight', 
+    'Illegal Dumping', 
+    'Graffiti', 
+    'Water Leak', 
+    'Other'
+];
 
 
 function Dashboard({ issuesData = [] }) {
@@ -26,7 +52,6 @@ function Dashboard({ issuesData = [] }) {
   const filteredIssues = useMemo(() => {
       return issuesData.filter(issue => {
           if (filterCategory === 'All') return true;
-          // Ensure the status checking is robust
           return issue.category === filterCategory;
       });
   }, [issuesData, filterCategory]);
@@ -88,7 +113,7 @@ function Dashboard({ issuesData = [] }) {
               <tr>
                 <th scope="col" className="px-6 py-3">Issue ID</th>
                 <th scope="col" className="px-6 py-3">Category</th>
-                <th scope="col" className="px-6 py-3">Location</th>
+                <th scope="col" className="px-6 py-3">Severity</th>
                 <th scope="col" className="px-6 py-3">Reported On</th>
                 <th scope="col" className="px-6 py-3">Status</th>
                 <th scope="col" className="px-6 py-3">Actions</th>
@@ -101,7 +126,11 @@ function Dashboard({ issuesData = [] }) {
                 <tr key={issue.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{issue.id}</td>
                   <td className="px-6 py-4">{issue.category}</td>
-                  <td className="px-6 py-4">{issue.location.join(', ')}</td> {/* Display coords for now */}
+                  <td className="px-6 py-4">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getSeverityColor(issue.severity)}`}>
+                            {issue.severity || 'N/A'}
+                        </span>
+                    </td>
                   <td className="px-6 py-4">{issue.reportedOn}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusColor(issue.currentStatus)} capitalize`}>
